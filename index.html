@@ -1,0 +1,197 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>图例</title>
+    <style>
+    .new section{margin:20px auto;width:600px;line-height:30px;}
+    #btn{margin:0 400px;height:30px;width:50px;background:#99cccc;font-weight: 500;
+      border-radius: 3px;
+      border: 1px solid transparent;
+      box-shadow: inset 0px -1px 0px 0px rgba(0, 0, 0, 0.09);
+     }
+       
+     input[type='radio']{
+      position:absolute;
+      clip:rect(0,0,0,0);
+     }
+    input[type='radio'] + label::before {
+      content: '\a0';
+      font-size: 20px;
+      display: inline-block;
+      vertical-align: middle;
+      width: 0.5em;
+      height: 0.5em;
+      margin-right: 0.25em;
+      border-radius: 0.35em;
+      background: #fff;
+      line-height: 0.25em;
+      border:0.1em solid #fff;
+      box-shadow: 0 0 .1em .1em #CD5B45;
+    }
+      input[type='radio']:checked + label::before {
+        background: #333333;
+    }
+
+    .equal_height{width:100%; height:999em; position:absolute; left:0; top:0;border-right:1px solid #ccc;}
+    .container{width:80%; margin-left:auto; margin-right:auto;overflow:hidden; position:relative;border:1px solid #ccc;}
+    .left_con{width:48%;width:calc(50% - 4px); float:left; position:relative;}
+    .right_con{width:48%;width:calc(50% - 4px); float:right;}
+    #leftbox{position:relative; z-index:1;}
+    .box{padding:1em;}
+    </style>
+</head>
+<body>
+<div class="new">
+  <section>
+    选择将图例添加到左右哪个框:
+    <input type="radio" name="target" value="leftbox" id="left" checked/><label for="left">左</label>
+    <input type="radio" name="target" value="rightbox" id="right"/><label for="right">右</label>
+    <div>图例图标颜色（逗号分隔）：<input type="text" name="color" value="red,green" /></div>
+    <div>对应文字（逗号分隔，最后一个是单位）：<input type="text" name="level" value="1,2,人" /></div>
+    <div>输入图例形状大小<input type="number" min='14' max='40' name = 'fontSize' value='14'/> px</div>
+    <div>选择形状：
+    <input type="radio" name="shape" value="square" id="square" checked/><label for="square">正方形</label>
+    <input type="radio" name="shape" value="circle" id="circle" /><label for="circle">圆形</label>
+    <input type="radio" name="shape" value="triangle" id="triangle"/><label for="triangle">三角形</label>
+    </div>
+    <div>选择排列方式：
+    <input type="radio" name="arrange" value="vertical" id="vertical" checked/><label for="vertical">纵向</label>
+    <input type="radio" name="arrange" value="horizontal" id="horizontal" /><label for="horizontal">横向</label>
+    </div>
+    <input type = "button" id="btn" value = "新建"/>
+ </section>
+</div>
+ <div class="container">
+    <div class="left_con">
+        <div class="equal_height left_box_bg"></div>
+        <div id="leftbox" class= "box">         
+        </div>
+    </div>
+    <div class="right_con">
+        <div id="rightbox" class = "box">      
+        </div>
+    </div>
+</div>
+
+     
+<script type="text/javascript" >
+window.onload = function(){
+  var Legend = (function(){
+    function Legend(target,content,options,customClass) {
+      //初始化要用的参数
+      if(target.nodeType){
+         this.target = target;
+       }else{
+        alert("未输入正确的目标元素，默认添加到body")
+        this.target = document.getElementsByTagName('body')[0];
+       }
+      this.content = content;
+      this.options = options;
+      this.customClass = customClass;
+      var id = parseInt(Math.random()*1000)
+      while(this.idObj[id]==true){
+        id = parseInt(Math.random()*1000);
+      }
+      this.idObj[id] = true;
+      this.divClass = "dia"+id;
+      //初始化
+      this.init();
+    }
+    Legend.prototype.init = function() {
+      this.initStyle(); //初始化样式表
+      this.initDom(); //初始化DOM结构     
+    }
+    Legend.prototype.idObj = {};
+    Legend.prototype.initDom = function(){
+      var target = this.target,
+          level = this.content.level,
+          color = this.content.color,
+          divClass = this.divClass,
+          fra = document.createDocumentFragment();
+      for(var i = 0,len=color.length;i<len;i++){    
+        var dia = document.createElement("div");
+        dia.setAttribute('data-attr',level[i]);
+        dia.setAttribute('class',divClass)    
+        fra.appendChild(dia);
+        if(this.options.shape=="triangle"){
+          dia.style.borderColor = '#ffffff #ffffff '+color[i]+' #ffffff';
+        }else{
+          dia.style.background = color[i];
+        }
+      }
+      if(color.length == level.length-1){
+        var unit = document.createElement("div");
+        unit.innerHTML = "单位："+level[level.length-1];
+        unit.setAttribute('style','font-size:14px;font-align:right;');
+        fra.appendChild(unit);
+      }
+      var div = document.createElement("div");
+      div.className = this.customClass?this.customClass:"";
+      div.appendChild(fra);
+      target.appendChild(div);
+  }
+  Legend.prototype.initStyle = function(){
+    var targetClass = this.target.className ? ('.'+this.target.className):"";
+    var className =targetClass + " ."+this.divClass;
+    var rules = {
+      shape:(function(){
+        var triangle ='width:0;height:0;border-width:0 0.5em 1em;border-style:solid;' 
+        var square = 'width:1em;height:1em;';    
+        return {
+          square : square,
+          circle : square + 'border-radius:0.5em;',
+          triangle:triangle,
+        }
+      })(),
+      arrange:{
+        vertical:{
+          s:'margin-top:0.5em;',
+          a:'margin-left:2em;'
+        },
+        horizontal:{
+          s:'display:inline-block;margin-right:1em;',
+          a:' line-height:5em;'
+      },
+    }
+  }
+    var style = rules.shape[this.options.shape]+rules.arrange[this.options.arrange].s+"font-size:"+this.options.fontSize;
+    var marginLeft = [0.5,-0.5,2,1];
+    var index = this.options.arrange =="vertical"?2:0;
+    index = this.options.shape == "triangle" ? index+1:index;
+
+    var afterStyle = "content:attr(data-attr);font-size:0.5em;white-space:nowrap;"+rules.arrange[this.options.arrange].a+"margin-left:"+marginLeft[index]+"em;";
+    var styleEl = document.createElement('style');
+    document.head.appendChild(styleEl);
+    styleEl.sheet.addRule(className,style);
+    styleEl.sheet.addRule(className+'::after',afterStyle);
+  }
+  return Legend;
+})()
+
+var btn = document.getElementById("btn");
+btn.addEventListener('click',function(){
+  var $ = document.querySelectorAll.bind(document);
+  var target = '#'+ getChecked($("input[name='target']"));
+  var targetEl = $(target)[0]
+  var content = {};
+  content.color = $("input[name='color']")[0].value.split(','); 
+  content.level = $("input[name='level']")[0].value.split(',');
+  var options = {};
+  options.fontSize = $("input[name='fontSize']")[0].value; 
+  options.shape = getChecked($("input[name='shape']")); 
+   options.arrange =getChecked($("input[name='arrange']")); 
+   function getChecked(ele){
+     var len = ele.length;
+     while(len--&&(!ele[len].checked)){}
+      return ele[len].value;
+   }
+   new Legend(targetEl,content,options);
+
+})
+
+}
+</script>
+</body>
+</html>
